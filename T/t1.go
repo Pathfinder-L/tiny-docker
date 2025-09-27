@@ -1,19 +1,26 @@
+//go:build linux
+// +build linux
+
 package main
 
-import{
+import (
 	"log"
 	"os"
 	"os/exec"
 	"syscall"
-}
+)
 
-func main()  {
-	log.Println("Running", os.Args[0], os.Args[1:])
-	cmd := exec.Command(os.Args[1], os.Args[2:]...)
+func main() {
+	cmd := exec.Command("sh")
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWIPC | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS | syscall.CLONE_NEWNET,
+	}
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		Cloneflags: syscall.CLONE_NEWUTS | syscall.CLONE_NEWPID | syscall.CLONE_NEWNS,
+
+	if err := cmd.Run(); err != nil {
+		log.Fatal(err)
 	}
+	os.Exit(-1)
 }
